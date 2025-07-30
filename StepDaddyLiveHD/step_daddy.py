@@ -67,13 +67,21 @@ class StepDaddy:
             logo = f"{config.api_url}/logo/{urlsafe_base64(logo)}"
         return Channel(id=channel_id, name=channel_name, tags=meta.get("tags", []), logo=logo)
 
+    async def _get_source(self, channel_id: str):
+        prefixes = ["stream", "cast", "watch"]
+        for prefix in prefixes:
+            url = f"{self._base_url}/{prefix}/stream-{channel_id}.php"
+            if len(channel_id) > 3:
+                url = f"{self._base_url}/{prefix}/bet.php?id=bet{channel_id}"
+            response = await self._session.post(url, headers=self._headers())
+            matches = re.compile("iframe src=\"(.*)\" width").findall(response.text)
+            if matches:
+                source_url = matches[0]
+                return await self._session.post(source_url, headers=self._headers(url)), source_url
+        raise ValueError("Failed to find source URL for channel")
+
     async def stream(self, channel_id: str):
-        url = f"{self._base_url}/stream/stream-{channel_id}.php"
-        if len(channel_id) > 3:
-            url = f"{self._base_url}/stream/bet.php?id=bet{channel_id}"
-        response = await self._session.post(url, headers=self._headers())
-        source_url = re.compile("iframe src=\"(.*)\" width").findall(response.text)[0]
-        source_response = await self._session.post(source_url, headers=self._headers(url))
+        source_response, source_url = await self._get_source(channel_id)
 
         # Not generic
         channel_key = re.compile(r"var\s+channelKey\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]

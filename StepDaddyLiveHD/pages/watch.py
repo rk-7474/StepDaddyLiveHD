@@ -11,13 +11,9 @@ class WatchState(rx.State):
     is_loaded: bool = False
 
     @rx.var
-    def route_channel_id(self) -> str:
-        return self.router.page.params.get("channel_id", "")
-
-    @rx.var
     def channel(self) -> Channel | None:
         self.is_loaded = False
-        channel = backend.get_channel(self.route_channel_id)
+        channel = backend.get_channel(str(self.channel_id))
         self.is_loaded = True
         return channel
 
@@ -192,7 +188,7 @@ def watch() -> rx.Component:
                     ),
                     rx.box(
                         rx.cond(
-                            WatchState.route_channel_id != "",
+                            WatchState.channel_id != "",
                             media_player(
                                 title=WatchState.channel.name,
                                 src=WatchState.url,
