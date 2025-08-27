@@ -85,7 +85,7 @@ class StepDaddy:
 
         # Not generic
         channel_key = re.compile(r"const\s+CHANNEL_KEY\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]
-        bundle = re.compile(r"const\s+BUNDLE\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]
+        bundle = re.compile(r"const\s+XJZ\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]
         data = decode_bundle(bundle)
         auth_ts = data.get("b_ts", "")
         auth_sig = data.get("b_sig", "")
