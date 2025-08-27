@@ -67,7 +67,10 @@ class StepDaddy:
             logo = f"{config.api_url}/logo/{urlsafe_base64(logo)}"
         return Channel(id=channel_id, name=channel_name, tags=meta.get("tags", []), logo=logo)
 
-    async def _get_source(self, channel_id: str):
+    # Not generic
+    async def stream(self, channel_id: str):
+        key = "CHANNEL_KEY"
+
         prefixes = ["stream", "cast", "watch"]
         for prefix in prefixes:
             url = f"{self._base_url}/{prefix}/stream-{channel_id}.php"
@@ -77,14 +80,13 @@ class StepDaddy:
             matches = re.compile("iframe src=\"(.*)\" width").findall(response.text)
             if matches:
                 source_url = matches[0]
-                return await self._session.post(source_url, headers=self._headers(url)), source_url
-        raise ValueError("Failed to find source URL for channel")
+                source_response = await self._session.post(source_url, headers=self._headers(url))
+                if key in source_response.text:
+                    break
+        else:
+            raise ValueError("Failed to find source URL for channel")
 
-    async def stream(self, channel_id: str):
-        source_response, source_url = await self._get_source(channel_id)
-
-        # Not generic
-        channel_key = re.compile(r"const\s+CHANNEL_KEY\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]
+        channel_key = re.compile(rf"const\s+{re.escape(key)}\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]
         bundle = re.compile(r"const\s+XJZ\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]
         data = decode_bundle(bundle)
         auth_ts = data.get("b_ts", "")
