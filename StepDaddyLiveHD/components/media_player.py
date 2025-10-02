@@ -3,7 +3,7 @@ from reflex.components.component import NoSSRComponent
 
 
 class MediaPlayer(NoSSRComponent):
-    library = "/public/player"
+    library = "$/public/player"
     lib_dependencies: list[str] = ["@vidstack/react@next"]
     tag = "Player"
     title: rx.Var[str]

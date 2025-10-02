@@ -19,6 +19,10 @@ class State(rx.State):
     async def on_load(self):
         self.channels = backend.get_channels()
 
+    @rx.event
+    def set_search_query(self, value: str):
+        self.search_query = value
+
 
 @rx.page("/", on_load=State.on_load)
 def index() -> rx.Component:

@@ -77,6 +77,10 @@ class ScheduleState(rx.State):
     def set_switch(self, value: bool):
         self.switch = value
 
+    @rx.event
+    def set_search_query(self, value: str):
+        self.search_query = value
+
     @rx.var
     def filtered_events(self) -> List[EventItem]:
         now = datetime.now(ZoneInfo("UTC")) - timedelta(minutes=30)

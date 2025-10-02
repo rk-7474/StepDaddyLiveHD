@@ -22,7 +22,7 @@ class StepDaddy:
             self._session = AsyncSession(proxy="socks5://" + socks5)
         else:
             self._session = AsyncSession()
-        self._base_url = "https://thedaddy.top"
+        self._base_url = "https://dlhd.dad"
         self.channels = []
         with open("StepDaddyLiveHD/meta.json", "r") as f:
             self._meta = json.load(f)
@@ -41,53 +41,32 @@ class StepDaddy:
     async def load_channels(self):
         channels = []
         try:
-            response = await self._session.get(f"{self._base_url}/24-7-channels.php", headers=self._headers())
-            channels_block = re.compile("<center><h1(.+?)tab-2", re.MULTILINE | re.DOTALL).findall(str(response.text))
-            channels_data = re.compile("href=\"(.*)\" target(.*)<strong>(.*)</strong>").findall(channels_block[0])
-            for channel_data in channels_data:
-                channels.append(self._get_channel(channel_data))
+            response = await self._session.get(f"{self._base_url}/daddy.json", headers=self._headers())
+            response_data = response.json()
+            for data in response_data:
+                channel_id = data.get("channel_id")
+                channel_name = data.get("channel_name").replace("#", "")
+                meta = self._meta.get(channel_name, {})
+                logo = meta.get("logo", "")
+                if logo.startswith("http"):
+                    logo = f"{config.api_url}/logo/{urlsafe_base64(logo)}"
+                channels.append(Channel(id=channel_id, name=channel_name, tags=meta.get("tags", []), logo=logo))
         finally:
             self.channels = sorted(channels, key=lambda channel: (channel.name.startswith("18"), channel.name))
 
-    def _get_channel(self, channel_data) -> Channel:
-        channel_id = channel_data[0].split('-')[1].replace('.php', '')
-        channel_name = channel_data[2]
-        if channel_id == "666":
-            channel_name = "Nick Music"
-        if channel_id == "609":
-            channel_name = "Yas TV UAE"
-        if channel_data[2] == "#0 Spain":
-            channel_name = "Movistar Plus+"
-        elif channel_data[2] == "#Vamos Spain":
-            channel_name = "Vamos Spain"
-        clean_channel_name = re.sub(r"\s*\(.*?\)", "", channel_name)
-        meta = self._meta.get(clean_channel_name, {})
-        logo = meta.get("logo", "/missing.png")
-        if logo.startswith("http"):
-            logo = f"{config.api_url}/logo/{urlsafe_base64(logo)}"
-        return Channel(id=channel_id, name=channel_name, tags=meta.get("tags", []), logo=logo)
-
-    # Not generic
     async def stream(self, channel_id: str):
         key = "CHANNEL_KEY"
-
-        prefixes = ["stream", "cast", "watch"]
-        for prefix in prefixes:
-            url = f"{self._base_url}/{prefix}/stream-{channel_id}.php"
-            if len(channel_id) > 3:
-                url = f"{self._base_url}/{prefix}/bet.php?id=bet{channel_id}"
-            response = await self._session.post(url, headers=self._headers())
-            matches = re.compile("iframe src=\"(.*)\" width").findall(response.text)
-            if matches:
-                source_url = matches[0]
-                source_response = await self._session.post(source_url, headers=self._headers(url))
-                if key in source_response.text:
-                    break
+        url = f"{self._base_url}/stream/stream-{channel_id}.php"
+        response = await self._session.get(url, headers=self._headers())
+        matches = re.compile("iframe src=\"(.*)\" width").findall(response.text)
+        if matches:
+            source_url = matches[0]
+            source_response = await self._session.get(source_url, headers=self._headers(url))
         else:
             raise ValueError("Failed to find source URL for channel")
 
         channel_key = re.compile(rf"const\s+{re.escape(key)}\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]
-        bundle = re.compile(r"const\s+XJZ\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]
+        bundle = re.compile(r"const\s+XKZK\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]
         data = decode_bundle(bundle)
         auth_ts = data.get("b_ts", "")
         auth_sig = data.get("b_sig", "")
