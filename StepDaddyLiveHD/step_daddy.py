@@ -6,13 +6,14 @@ from curl_cffi import AsyncSession
 from typing import List
 from .utils import encrypt, decrypt, urlsafe_base64, decode_bundle
 from rxconfig import config
+import html
 
 
 class Channel(rx.Base):
     id: str
     name: str
     tags: List[str]
-    logo: str
+    logo: str | None
 
 
 class StepDaddy:
@@ -41,14 +42,17 @@ class StepDaddy:
     async def load_channels(self):
         channels = []
         try:
-            response = await self._session.get(f"{self._base_url}/daddy.json", headers=self._headers())
-            response_data = response.json()
-            for data in response_data:
-                channel_id = data.get("channel_id")
-                channel_name = data.get("channel_name").replace("#", "")
-                meta = self._meta.get(channel_name, {})
+            response = await self._session.get(f"{self._base_url}/24-7-channels.php", headers=self._headers())
+            matches = re.findall(
+                r'<a class="card"\s+href="/watch\.php\?id=(\d+)"[^>]*>\s*<div class="card__title">(.*?)</div>',
+                response.text,
+                re.DOTALL
+            )
+            for channel_id, channel_name in matches:
+                channel_name = html.unescape(channel_name.strip()).replace("#", "")
+                meta = self._meta.get("18+" if channel_name.startswith("18+") else channel_name, {})
                 logo = meta.get("logo", "")
-                if logo.startswith("http"):
+                if logo:
                     logo = f"{config.api_url}/logo/{urlsafe_base64(logo)}"
                 channels.append(Channel(id=channel_id, name=channel_name, tags=meta.get("tags", []), logo=logo))
         finally:
