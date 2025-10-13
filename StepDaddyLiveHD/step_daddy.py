@@ -70,8 +70,8 @@ class StepDaddy:
             raise ValueError("Failed to find source URL for channel")
 
         channel_key = re.compile(rf"const\s+{re.escape(key)}\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]
-        bundle = re.compile(r"const\s+XKZK\s*=\s*\"(.*?)\";").findall(source_response.text)[-1]
-        data = decode_bundle(bundle)
+
+        data = decode_bundle(source_response.text)
         auth_ts = data.get("b_ts", "")
         auth_sig = data.get("b_sig", "")
         auth_rnd = data.get("b_rnd", "")
