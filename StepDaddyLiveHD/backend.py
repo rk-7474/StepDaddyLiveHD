@@ -52,15 +52,17 @@ async def content(path: str):
 
 async def update_channels():
     while True:
+        response = await client.get("1.1.1.1")
+        if response.status_code == 200:
+            break
+        await asyncio.sleep(5)
+        
+    while True:
         try:
             await step_daddy.load_channels()
             await asyncio.sleep(300)
         except asyncio.CancelledError:
             continue
-        except:
-            await asyncio.sleep(15)
-            continue
-
 
 def get_channels():
     return step_daddy.channels
