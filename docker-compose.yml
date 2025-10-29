@@ -16,5 +16,20 @@ services:
     ports:
       - "${PORT}:${PORT}"
     restart: unless-stopped
-    env_file:
-      - .env
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - 8888:8888/tcp
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${PROTON_PRIVATE_KEY}
+      - SERVER_COUNTRIES=Netherlands
+    volumes:
+      - ./gluetun:/gluetun
+    restart: unless-stopped
