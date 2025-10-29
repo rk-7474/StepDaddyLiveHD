@@ -57,6 +57,9 @@ async def update_channels():
             await asyncio.sleep(300)
         except asyncio.CancelledError:
             continue
+        except:
+            await asyncio.sleep(15)
+            continue
 
 
 def get_channels():
