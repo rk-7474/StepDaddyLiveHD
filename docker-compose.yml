@@ -1,6 +1,6 @@
 services:
   step-daddy-live-hd:
-    network: "service:gluetun"
+    network_mode: "service:gluetun"
     build:
       context: .
       dockerfile: Dockerfile
