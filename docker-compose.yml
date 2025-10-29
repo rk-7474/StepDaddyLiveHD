@@ -14,8 +14,6 @@ services:
       - API_URL=${API_URL}
       - PROXY_CONTENT=${PROXY_CONTENT}
       - SOCKS5=${SOCKS5}
-    ports:
-      - "${PORT}:${PORT}"
     restart: unless-stopped
   gluetun:
     image: qmcgaw/gluetun
