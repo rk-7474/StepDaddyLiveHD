@@ -52,7 +52,7 @@ async def content(path: str):
 
 async def update_channels():
     while True:
-        response = await client.get("1.1.1.1")
+        response = await client.get("https://one.one.one.one/")
         if response.status_code == 200:
             break
         await asyncio.sleep(5)
