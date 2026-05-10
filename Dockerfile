@@ -27,9 +27,6 @@ COPY . .
 
 ARG PORT API_URL PROXY_CONTENT SOCKS5
 
-# Install reflex helper utilities like bun/node
-RUN reflex init --yes
-
 # Download other npm dependencies and compile frontend
 RUN mkdir -p /srv && \
     REFLEX_API_URL=${API_URL:-http://localhost:$PORT} reflex export --loglevel debug --frontend-only --no-zip && \
