@@ -10,7 +10,6 @@ ARG API_URL
 # edge by the given platform.
 FROM python:3.13 AS builder
 
-RUN mkdir -p /app/.web
 RUN python -m venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
 
@@ -26,11 +25,13 @@ COPY . .
 ARG PORT API_URL PROXY_CONTENT SOCKS5
 
 # Install reflex helper utilities like bun/node
-RUN reflex init
+RUN reflex init --yes
 
 # Download other npm dependencies and compile frontend
-RUN REFLEX_API_URL=${API_URL:-http://localhost:$PORT} reflex export --loglevel debug --frontend-only --no-zip && mv .web/build/client/* /srv/ && rm -rf .web
-
+RUN mkdir -p /srv && \
+    REFLEX_API_URL=${API_URL:-http://localhost:$PORT} reflex export --loglevel debug --frontend-only --no-zip && \
+    mv .web/build/client/* /srv/ && \
+    rm -rf .web
 
 # Final image with only necessary files
 FROM python:3.13-slim
