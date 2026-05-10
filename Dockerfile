@@ -15,6 +15,9 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
 
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:$PATH"
+
 # Install python app requirements and reflex in the container
 COPY requirements.txt .
 RUN pip install -r requirements.txt
