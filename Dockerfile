@@ -20,14 +20,14 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Install reflex helper utilities like bun/node
-COPY rxconfig.py ./
-RUN reflex init
-
 # Copy local context to `/app` inside container (see .dockerignore)
 COPY . .
 
 ARG PORT API_URL PROXY_CONTENT SOCKS5
+
+# Install reflex helper utilities like bun/node
+RUN reflex init
+
 # Download other npm dependencies and compile frontend
 RUN REFLEX_API_URL=${API_URL:-http://localhost:$PORT} reflex export --loglevel debug --frontend-only --no-zip && mv .web/build/client/* /srv/ && rm -rf .web
 
